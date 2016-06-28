@@ -1,4 +1,4 @@
-package com.example.jokeengine;
+package com.chefmic.jokeengine;
 
 public class JokeFactory {
 

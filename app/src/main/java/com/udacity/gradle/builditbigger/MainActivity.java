@@ -1,6 +1,7 @@
 package com.udacity.gradle.builditbigger;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -8,9 +9,17 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.chefmic.joketeller.TellJokeActivity;
-import com.example.jokeengine.JokeFactory;
+import com.chefmic.myapplication.backend.myApi.MyApi;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.extensions.android.json.AndroidJsonFactory;
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
+import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
+
+    private MyApi myApiService = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,12 +50,41 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void tellJoke(View view){
-//        Toast.makeText(this, JokeFactory.getJoke(), Toast.LENGTH_SHORT).show();
-        String joke = JokeFactory.getJoke();
-        Intent intent = new Intent(this, TellJokeActivity.class);
-        intent.putExtra(TellJokeActivity.JOKE, joke);
-        startActivity(intent);
+    public void tellJoke(View view) {
+        new AsyncTask<Void, Void, String>() {
+
+            @Override
+            protected String doInBackground(Void... params) {
+                if (myApiService == null) {
+                    MyApi.Builder builder = new MyApi.Builder(AndroidHttp.newCompatibleTransport(),
+                            new AndroidJsonFactory(), null)
+                            .setRootUrl("http://10.0.2.2:8080/_ah/api/")
+                            .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
+                                @Override
+                                public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest) throws IOException {
+                                    abstractGoogleClientRequest.setDisableGZipContent(true);
+                                }
+                            });
+                    // end options for devappserver
+
+                    myApiService = builder.build();
+                }
+                try {
+                    return myApiService.getJoke().execute().getData();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return "";
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String joke) {
+                Intent intent = new Intent(MainActivity.this, TellJokeActivity.class);
+                intent.putExtra(TellJokeActivity.JOKE, joke);
+                startActivity(intent);
+            }
+        }.execute((Void) null);
+
     }
 
 
