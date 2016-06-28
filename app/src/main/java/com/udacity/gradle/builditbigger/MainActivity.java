@@ -6,18 +6,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import com.chefmic.joketeller.TellJokeActivity;
 import com.chefmic.myapplication.backend.myApi.MyApi;
 
 public class MainActivity extends AppCompatActivity implements FetchJokeAsyncTask.LoadJokeCallback {
 
-    private MyApi myApiService = null;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        progressBar = (ProgressBar) findViewById(R.id.joke_progress_bar);
     }
 
 
@@ -44,8 +46,12 @@ public class MainActivity extends AppCompatActivity implements FetchJokeAsyncTas
     }
 
     public void tellJoke(View view) {
+        if (progressBar.getVisibility() == View.VISIBLE) {
+            return;
+        }
         FetchJokeAsyncTask task = new FetchJokeAsyncTask(this);
         task.execute((Void) null);
+        progressBar.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -53,5 +59,6 @@ public class MainActivity extends AppCompatActivity implements FetchJokeAsyncTas
         Intent intent = new Intent(MainActivity.this, TellJokeActivity.class);
         intent.putExtra(TellJokeActivity.JOKE, joke);
         startActivity(intent);
+        progressBar.setVisibility(View.GONE);
     }
 }

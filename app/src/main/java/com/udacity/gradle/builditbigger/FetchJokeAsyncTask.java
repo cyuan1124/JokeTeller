@@ -48,7 +48,6 @@ public class FetchJokeAsyncTask extends AsyncTask<Void, Void, String> {
         try {
             return myApiService.getJoke().execute().getData();
         } catch (Exception e) {
-            e.printStackTrace();
             return "";
         }
     }
